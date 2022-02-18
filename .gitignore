@@ -1,0 +1,5 @@
+*.o
+*.dep
+build
+.DS_Store
+*.log
