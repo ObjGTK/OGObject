@@ -62,11 +62,11 @@ AS_IF([test x"$with_glib" != x"no" -a x"$with_glib" != x""], [
        FRAMEWORK_LIBS="-L$with_glib/lib $FRAMEWORK_LIBS"
 ])
 
-PKG_CHECK_MODULES(glib, [glib-2.0 >= 2.70.3], [
+PKG_CHECK_MODULES(glib, [glib-2.0 >= 2.66], [
 	CPPFLAGS="$CPPFLAGS $glib_CFLAGS"
 	LIBS="$LIBS $glib_LIBS"
 ], [
-	AC_MSG_ERROR(You need glib-2.0 >= 2.70.3 installed!)
+	AC_MSG_ERROR(You need glib-2.0 >= 2.66 installed!)
 ])
 
 AS_IF([test x"$GOBJC" = x"yes"], [
