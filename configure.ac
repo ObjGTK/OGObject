@@ -55,16 +55,16 @@ AS_IF([test x"$enable_static" = x"yes" -o x"$enable_shared" = x"no"], [
 AC_ARG_WITH(glib, AS_HELP_STRING([--with-glib=PREFIX],
 	[build with glib-2.0 in the specified prefix]))
 AS_IF([test x"$with_glib" != x"no" -a x"$with_glib" != x""], [
-       GLIB_CPPFLAGS="$GLIB_CFLAGS -I$with_glib/include"
-       GLIB_LIBS="$GLIB_LIBS -L$with_glib/lib"
+       OGOBJECT_CPPFLAGS="$GLIB_CFLAGS -I$with_glib/include"
+       OGOBJECT_LIBS="$GLIB_LIBS -L$with_glib/lib"
        CPPFLAGS="$CPPFLAGS -I$with_glib/include"
        LIBS="-L$with_glib/lib $LIBS"
        FRAMEWORK_LIBS="-L$with_glib/lib $FRAMEWORK_LIBS"
 ])
 
 PKG_CHECK_MODULES(glib, [glib-2.0 >= 2.66], [
-	CPPFLAGS="$CPPFLAGS $glib_CFLAGS"
-	LIBS="$LIBS $glib_LIBS"
+	OGOBJECT_CPPFLAGS="$CPPFLAGS $glib_CFLAGS"
+	OGOBJECT_LIBS="$LIBS $glib_LIBS"
 ], [
 	AC_MSG_ERROR(You need glib-2.0 >= 2.66 installed!)
 ])
