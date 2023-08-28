@@ -8,7 +8,7 @@
 #include <glib-object.h>
 
 /**
- * The base class for all CoreGTK wrapper classes
+ * The base class for all wrapper classes
  */
 @interface OGObject: OFObject
 {
@@ -53,6 +53,6 @@
  *
  * @returns the internal GObject
  */
-- (GObject *)GOBJECT;
+- (GObject *)gObject;
 
 @end

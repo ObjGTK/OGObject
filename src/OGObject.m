@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: 2021-2022 Johannes Brakensiek <objfw@codingpastor.de>
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
- 
+
 #import "OGObject.h"
 #import "OGObjectInitializationFailedException.h"
 
@@ -48,7 +48,7 @@
 	}
 }
 
-- (GObject *)GOBJECT
+- (GObject *)gObject
 {
 	return _gObject;
 }

@@ -1,0 +1,27 @@
+# Requires: clang-format >= 12
+ColumnLimit: 80
+IndentWidth: 8
+ContinuationIndentWidth: 4
+TabWidth: 8
+UseTab: ForIndentation
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+  AfterObjCDeclaration: true
+BinPackArguments: true
+BinPackParameters: true
+AlignOperands: DontAlign
+AlignAfterOpenBracket: DontAlign
+PointerAlignment: Right
+AlignConsecutiveMacros: AcrossComments
+AlignEscapedNewlines: Left
+AlignTrailingComments: true
+AllowShortBlocksOnASingleLine: Empty
+AlwaysBreakAfterReturnType: None
+ObjCBlockIndentWidth: 8
+ObjCSpaceAfterProperty: true
+ObjCSpaceBeforeProtocolList: true
+PPIndentWidth: 1
+SpaceBeforeInheritanceColon: false
+SpaceBeforeParens: ControlStatements
+SpacesBeforeTrailingComments: 2
