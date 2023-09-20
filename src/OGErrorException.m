@@ -50,7 +50,7 @@
 {
 	return [OFString
 	    stringWithFormat:@"An exception of type %@ occurred!\nDomain: %@, "
-	                     @"Error-Code %i.\nMessage:%@",
+	                     @"Error-Code %i.\nMessage: %@",
 	    self.class, self.domain, _errNo, _message];
 }
 
