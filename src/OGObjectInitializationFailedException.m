@@ -13,14 +13,13 @@
 		return [OFString
 		    stringWithFormat:
 		        @"Initialization of GObject instance (or a child "
-		        @"instance) to be wrapped failed for or in class %@! "
-		        @" Received NULL for OGObject initalization.",
+		        @"instance) to be wrapped failed for or in class %@!\n"
+		        @"Received NULL for OGObject initalization.",
 		    _inClass];
 	else
 		return @"Initialization of GObject instance (or a child "
-		       @"instance) to "
-		       @"be wrapped failed. Received NULL for OGObject "
-		       @"initalization.";
+		       @"instance) to be wrapped failed.\n"
+		       @"Received NULL for OGObject initalization.";
 }
 
 @end
