@@ -1,4 +1,4 @@
 package_format 1
-CPPFLAGS="$CPPFLAGS"
-LIBS="-logobject $LIBS"
-FRAMEWORK_LIBS="-framework OGObject $FRAMEWORK_LIBS"
+CPPFLAGS="$CPPFLAGS @GLib2_CPPFLAGS@"
+LIBS="-logobject @GLib2_LIBS@ $LIBS"
+FRAMEWORK_LIBS="-framework OGObject @GLib2_LIBS@ $FRAMEWORK_LIBS"

@@ -9,6 +9,8 @@ for i in configure.ac build-aux/m4/*; do
 	])
 done
 
+BUILDSYS_INIT
+
 AC_CHECK_TOOL(OBJFW_CONFIG, objfw-config)
 AS_IF([test x"$OBJFW_CONFIG" = x""], [
 	AC_MSG_ERROR(You need ObjFW and objfw-config installed!)
@@ -23,17 +25,21 @@ AC_PROG_LN_S
 AC_PROG_INSTALL
 
 CPP="$OBJCPP"
-CPPFLAGS="$CPPFLAGS $OBJCPPFLAGS $($OBJFW_CONFIG --cppflags)"
-OBJCFLAGS="$OBJCFLAGS -Wall $($OBJFW_CONFIG --objcflags)"
-LDFLAGS="$LDFLAGS $($OBJFW_CONFIG --ldflags --rpath)"
-FRAMEWORK_LIBS="$($OBJFW_CONFIG --framework-libs)"
-LIBS="$($OBJFW_CONFIG --libs --rpath)"
+CPPFLAGS="$CPPFLAGS $OBJCPPFLAGS"
+CPPFLAGS="$CPPFLAGS $($OBJFW_CONFIG $OBJFW_CONFIG_FLAGS --cppflags)"
+OBJCFLAGS="$OBJCFLAGS $($OBJFW_CONFIG $OBJFW_CONFIG_FLAGS --objcflags)"
+LDFLAGS="$LDFLAGS $($OBJFW_CONFIG $OBJFW_CONFIG_FLAGS --ldflags)"
+FRAMEWORK_LIBS="$($OBJFW_CONFIG $OBJFW_CONFIG_FLAGS --framework-libs) $LIBS"
+LIBS="$($OBJFW_CONFIG $OBJFW_CONFIG_FLAGS --libs --rpath) $LIBS"
 
 AX_CHECK_COMPILER_FLAGS(-Wno-deprecated-declarations,
 	[OBJCFLAGS="$OBJCFLAGS -Wno-deprecated-declarations"])
 
 AX_CHECK_COMPILER_FLAGS(-Wno-deprecated,
 	[OBJCFLAGS="$OBJCFLAGS -Wno-deprecated"])
+
+AC_CHECK_TOOL(AR, ar)
+AC_PROG_RANLIB
 
 AC_ARG_ENABLE(shared,
 	AS_HELP_STRING([--disable-shared], [do not build shared library]))
@@ -47,22 +53,24 @@ AS_IF([test x"$enable_shared" != x"no"], [
 ])
 AC_ARG_ENABLE(static, AS_HELP_STRING([--enable-static], [build static library]))
 AS_IF([test x"$enable_static" = x"yes" -o x"$enable_shared" = x"no"], [
-	AC_PATH_TOOL(AR, ar)
-	AC_PROG_RANLIB
 	AC_SUBST(OGOBJECT_STATIC_LIB, "libogobject.a")
 ])
 
 AC_ARG_WITH(glib, AS_HELP_STRING([--with-glib=PREFIX],
 	[build with glib-2.0 in the specified prefix]))
 AS_IF([test x"$with_glib" != x"no" -a x"$with_glib" != x""], [
-       CPPFLAGS="$CPPFLAGS -I$with_glib/include"
-       LIBS="$LIBS -L$with_glib/lib"
-       FRAMEWORK_LIBS="$FRAMEWORK_LIBS -L$with_glib/lib"
+ 	GLIB2_CPPFLAGS="-I$with_glib/include"
+	GLIB2_LIBS="-L$with_glib/lib"
+       CPPFLAGS="$CPPFLAGS $GLIB2_CPPFLAGS"
+       LIBS="$LIBS $GLIB2_LIBS"
+       FRAMEWORK_LIBS="$FRAMEWORK_LIBS $GLIB2_LIBS"
 ])
 
-PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.66], [
-	CPPFLAGS="$CPPFLAGS $GLIB_CFLAGS"
-	LIBS="$LIBS $GLIB_LIBS"
+PKG_CHECK_MODULES([GLib2], [glib-2.0 >= 2.66], [
+	CPPFLAGS="$CPPFLAGS $GLib2_CFLAGS"
+	GLib2_CPPFLAGS="$GLib2_CPPFLAGS $GLib2_CFLAGS"
+	LIBS="$LIBS $GLib2_LIBS"
+	FRAMEWORK_LIBS="$FRAMEWORK_LIBS $GLib2_LIBS"
 ], [
 	AC_MSG_ERROR(You need glib-2.0 >= 2.66 installed!)
 ])
@@ -71,12 +79,13 @@ AS_IF([test x"$GOBJC" = x"yes"], [
 	OBJCFLAGS="$OBJCFLAGS -Wwrite-strings -Wpointer-arith -Werror"
 ])
 
-BUILDSYS_INIT
-
 dnl We don't call AC_PROG_CPP, but only AC_PROG_OBJCPP and set CPP to OBJCPP
 dnl and add OBJCPPFLAGS to CPPFLAGS, thus we need to AC_SUBST these ourself.
 AC_SUBST(CPP)
 AC_SUBST(CPPFLAGS)
+
+AC_SUBST(GLib2_CPPFLAGS)
+AC_SUBST(GLib2_LIBS)
 
 AC_CONFIG_FILES([buildsys.mk extra.mk OGObject.oc])
 AC_OUTPUT
