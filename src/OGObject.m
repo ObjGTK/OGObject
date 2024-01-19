@@ -7,11 +7,38 @@
 #import "OGObject.h"
 #import "OGObjectInitializationFailedException.h"
 
+static OFString const *OGObjectQuarkName = @"ogobject-objc-wrapper";
+static GQuark OGObjectQuark = 0;
+
 @implementation OGObject
 
-+ (OGObject *)withGObject:(GObject *)obj
++ (instancetype)wrapperFor:(GObject *)obj
 {
-	OGObject *retVal = [[OGObject alloc] initWithGObject:obj];
+	GQuark quark = [self quark];
+
+	id wrapperObject = g_object_get_qdata(obj, quark);
+	if (wrapperObject != NULL && wrapperObject != nil &&
+	    [wrapperObject isKindOfClass:[self class]]) {
+		OFLog(@"Found a wrapper of type %@, returning.",
+		    [wrapperObject className]);
+		return wrapperObject;
+	}
+
+	return [self withGObject:obj];
+}
+
++ (GQuark)quark
+{
+	if (OGObjectQuark != 0)
+		return OGObjectQuark;
+
+	OGObjectQuark = g_quark_from_string([OGObjectQuarkName UTF8String]);
+	return OGObjectQuark;
+}
+
++ (instancetype)withGObject:(GObject *)obj
+{
+	id retVal = (id)[[self alloc] initWithGObject:obj];
 	return [retVal autorelease];
 }
 
@@ -23,6 +50,9 @@
 		if (obj == NULL)
 			@throw [OGObjectInitializationFailedException
 			    exceptionWithClass:[self class]];
+
+		GQuark quark = [OGObject quark];
+		g_object_set_qdata(obj, quark, self);
 
 		[self setGObject:obj];
 	} @catch (id e) {

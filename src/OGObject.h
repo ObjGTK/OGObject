@@ -8,6 +8,9 @@
 #import <ObjFW/ObjFW.h>
 #include <glib-object.h>
 
+static OFString const *OGObjectQuarkName;
+static GQuark OGObjectQuark;
+
 /**
  * The base class for all wrapper classes
  */
@@ -19,6 +22,10 @@
 	GObject *_gObject;
 }
 
++ (id)wrapperFor:(GObject *)obj;
+
++ (GQuark)quark;
+
 /**
  * Returns a new instance of OGObject with the internal GObject set to obj
  *
@@ -29,7 +36,7 @@
  *
  * @returns a new OGObject
  */
-+ (OGObject *)withGObject:(GObject *)obj;
++ (id)withGObject:(GObject *)obj;
 
 /**
  * Returns a new instance of OGObject with the internal GObject set to obj
@@ -39,7 +46,7 @@
  *
  * @returns a new OGObject
  */
-- (id)initWithGObject:(GObject *)obj;
+- (instancetype)initWithGObject:(GObject *)obj;
 
 /**
  * Sets the internal GObject
