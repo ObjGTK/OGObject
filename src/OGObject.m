@@ -21,8 +21,10 @@ static GQuark OGObjectQuark = 0;
 	    [wrapperObject isKindOfClass:[self class]]) {
 		OFLog(@"Found a wrapper of type %@, returning.",
 		    [wrapperObject className]);
-		return wrapperObject;
+		return [wrapperObject autorelease];
 	}
+
+	OFLog(@"Creating new instance of class %@.", [self className]);
 
 	return [self withGObject:obj];
 }
