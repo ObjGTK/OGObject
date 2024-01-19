@@ -51,9 +51,6 @@ static GQuark OGObjectQuark = 0;
 			@throw [OGObjectInitializationFailedException
 			    exceptionWithClass:[self class]];
 
-		GQuark quark = [OGObject quark];
-		g_object_set_qdata(obj, quark, self);
-
 		[self setGObject:obj];
 	} @catch (id e) {
 		[self release];
@@ -66,6 +63,7 @@ static GQuark OGObjectQuark = 0;
 - (void)setGObject:(GObject *)obj
 {
 	if (_gObject != NULL) {
+		g_object_set_qdata(_gObject, [OGObject quark], NULL);
 		// Decrease the reference count on the previously stored GObject
 		g_object_unref(_gObject);
 	}
@@ -73,6 +71,7 @@ static GQuark OGObjectQuark = 0;
 	_gObject = obj;
 
 	if (_gObject != NULL) {
+		g_object_set_qdata(_gObject, [OGObject quark], self);
 		// Increase the reference count on the new GObject
 		g_object_ref(_gObject);
 	}
@@ -86,6 +85,7 @@ static GQuark OGObjectQuark = 0;
 - (void)dealloc
 {
 	if (_gObject != NULL) {
+		g_object_set_qdata(_gObject, [OGObject quark], NULL);
 		// Decrease the reference count on the previously stored GObject
 		g_object_unref(_gObject);
 		_gObject = NULL;
