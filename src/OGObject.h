@@ -22,7 +22,7 @@ static GQuark OGObjectQuark;
 	GObject *_gObject;
 }
 
-+ (id)wrapperFor:(GObject *)obj;
++ (instancetype)wrapperFor:(GObject *)obj;
 
 + (GQuark)quark;
 
@@ -36,7 +36,7 @@ static GQuark OGObjectQuark;
  *
  * @returns a new OGObject
  */
-+ (id)withGObject:(GObject *)obj;
++ (instancetype)withGObject:(GObject *)obj;
 
 /**
  * Returns a new instance of OGObject with the internal GObject set to obj
