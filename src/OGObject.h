@@ -22,7 +22,7 @@ static GQuark OGObjectQuark;
 	GObject *_gObject;
 }
 
-+ (instancetype)wrapperFor:(GObject *)obj;
++ (instancetype)wrapperFor:(void *)obj;
 
 + (GQuark)quark;
 
@@ -36,7 +36,7 @@ static GQuark OGObjectQuark;
  *
  * @returns a new OGObject
  */
-+ (instancetype)withGObject:(GObject *)obj;
++ (instancetype)withGObject:(void *)obj;
 
 /**
  * Returns a new instance of OGObject with the internal GObject set to obj
@@ -46,7 +46,7 @@ static GQuark OGObjectQuark;
  *
  * @returns a new OGObject
  */
-- (instancetype)initWithGObject:(GObject *)obj;
+- (instancetype)initWithGObject:(void *)obj;
 
 /**
  * Sets the internal GObject
@@ -54,7 +54,7 @@ static GQuark OGObjectQuark;
  * @param obj
  * 	The GObject to set internally
  */
-- (void)setGObject:(GObject *)obj;
+- (void)setGObject:(void *)obj;
 
 /**
  * Gets the internal GObject

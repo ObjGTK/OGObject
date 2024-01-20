@@ -12,19 +12,21 @@ static GQuark OGObjectQuark = 0;
 
 @implementation OGObject
 
-+ (instancetype)wrapperFor:(GObject *)obj
++ (instancetype)wrapperFor:(void *)obj
 {
+	G_IS_OBJECT(obj);
 	GQuark quark = [self quark];
 
 	id wrapperObject = g_object_get_qdata(obj, quark);
+	// OFLog(@"WrapperObject is %u", wrapperObject);
 	if (wrapperObject != NULL && wrapperObject != nil &&
 	    [wrapperObject isKindOfClass:[self class]]) {
-		OFLog(@"Found a wrapper of type %@, returning.",
-		    [wrapperObject className]);
+		//	OFLog(@"Found a wrapper of type %@, returning.",
+		//    [wrapperObject className]);
 		return [wrapperObject autorelease];
 	}
 
-	OFLog(@"Creating new instance of class %@.", [self className]);
+	// OFLog(@"Creating new instance of class %@.", [self className]);
 
 	return [self withGObject:obj];
 }
@@ -38,14 +40,18 @@ static GQuark OGObjectQuark = 0;
 	return OGObjectQuark;
 }
 
-+ (instancetype)withGObject:(GObject *)obj
++ (instancetype)withGObject:(void *)obj
 {
+	G_IS_OBJECT(obj);
+
 	id retVal = (id)[[self alloc] initWithGObject:obj];
 	return [retVal autorelease];
 }
 
-- (instancetype)initWithGObject:(GObject *)obj
+- (instancetype)initWithGObject:(void *)obj
 {
+	G_IS_OBJECT(obj);
+
 	self = [super init];
 
 	@try {
@@ -62,8 +68,10 @@ static GQuark OGObjectQuark = 0;
 	return self;
 }
 
-- (void)setGObject:(GObject *)obj
+- (void)setGObject:(void *)obj
 {
+	G_IS_OBJECT(obj);
+
 	if (_gObject != NULL) {
 		g_object_set_qdata(_gObject, [OGObject quark], NULL);
 		// Decrease the reference count on the previously stored GObject
@@ -75,7 +83,7 @@ static GQuark OGObjectQuark = 0;
 	if (_gObject != NULL) {
 		g_object_set_qdata(_gObject, [OGObject quark], self);
 		// Increase the reference count on the new GObject
-		g_object_ref(_gObject);
+		g_object_ref_sink(_gObject);
 	}
 }
 
