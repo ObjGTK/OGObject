@@ -153,3 +153,4 @@ extra.mk
 .deps
 *.dep
 *.so
+*.sublime-workspace
