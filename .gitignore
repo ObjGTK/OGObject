@@ -154,3 +154,4 @@ extra.mk
 *.dep
 *.so
 *.sublime-workspace
+MemoryTest/MemoryTest
