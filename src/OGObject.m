@@ -10,11 +10,22 @@
 static OFString const *OGObjectQuarkName = @"ogobject-objc-wrapper";
 static GQuark OGObjectQuark = 0;
 
+static void
+ogo_ref_toggle_notify(gpointer data, GObject* object, gboolean is_last_ref) {
+	g_assert(data != NULL);
+	g_assert(object != NULL);
+	id wrapperObject = (id)data;
+	if(!is_last_ref && wrapperObject != nil && object != NULL)
+		[wrapperObject retain];
+	else if (is_last_ref && wrapperObject != nil && object != NULL)
+		[wrapperObject release];
+}
+
 @implementation OGObject
 
 + (instancetype)wrapperFor:(void *)obj
 {
-	G_IS_OBJECT(obj);
+	g_assert(G_IS_OBJECT(obj));
 	GQuark quark = [self quark];
 
 	id wrapperObject = g_object_get_qdata(obj, quark);
@@ -23,7 +34,7 @@ static GQuark OGObjectQuark = 0;
 	    [wrapperObject isKindOfClass:[self class]]) {
 		//	OFLog(@"Found a wrapper of type %@, returning.",
 		//    [wrapperObject className]);
-		return [wrapperObject autorelease];
+		return wrapperObject;
 	}
 
 	// OFLog(@"Creating new instance of class %@.", [self className]);
@@ -42,7 +53,7 @@ static GQuark OGObjectQuark = 0;
 
 + (instancetype)withGObject:(void *)obj
 {
-	G_IS_OBJECT(obj);
+	g_assert(G_IS_OBJECT(obj));
 
 	id retVal = (id)[[self alloc] initWithGObject:obj];
 	return [retVal autorelease];
@@ -50,7 +61,7 @@ static GQuark OGObjectQuark = 0;
 
 - (instancetype)initWithGObject:(void *)obj
 {
-	G_IS_OBJECT(obj);
+	g_assert(G_IS_OBJECT(obj));
 
 	self = [super init];
 
@@ -70,12 +81,16 @@ static GQuark OGObjectQuark = 0;
 
 - (void)setGObject:(void *)obj
 {
-	G_IS_OBJECT(obj);
+	g_assert(G_IS_OBJECT(obj));
 
 	if (_gObject != NULL) {
 		g_object_set_qdata(_gObject, [OGObject quark], NULL);
-		// Decrease the reference count on the previously stored GObject
-		g_object_unref(_gObject);
+		// Decrease the reference count on the previously stored GObject.
+		// Don't provide reference to self to toggle notify in this case because _gObject
+		// is going to be exchanged.
+		g_object_remove_toggle_ref(_gObject, ogo_ref_toggle_notify, nil);
+		// Disable the reverse toggle reference be decreasing our own reference count.
+		[self release];
 	}
 
 	_gObject = obj;
@@ -83,7 +98,9 @@ static GQuark OGObjectQuark = 0;
 	if (_gObject != NULL) {
 		g_object_set_qdata(_gObject, [OGObject quark], self);
 		// Increase the reference count on the new GObject
-		g_object_ref_sink(_gObject);
+		g_object_add_toggle_ref(_gObject, ogo_ref_toggle_notify, self);
+		// Enable the reverse toggle reference by increasing our own reference count.
+		[self retain];
 	}
 }
 
@@ -96,8 +113,10 @@ static GQuark OGObjectQuark = 0;
 {
 	if (_gObject != NULL) {
 		g_object_set_qdata(_gObject, [OGObject quark], NULL);
-		// Decrease the reference count on the previously stored GObject
-		g_object_unref(_gObject);
+		// Decrease the reference count on the previously stored GObject.
+		// Don't provide reference to self to toggle notify because self
+		// is going to cease to exist.
+		g_object_remove_toggle_ref(_gObject, ogo_ref_toggle_notify, nil);
 		_gObject = NULL;
 	}
 	[super dealloc];
