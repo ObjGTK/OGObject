@@ -21,12 +21,16 @@ ogo_ref_toggle_notify(gpointer data, GObject* object, gboolean is_last_ref) {
 		[wrapperObject release];
 }
 
+@interface OGObject ()
+	+ (GQuark)wrapperQuark;
+@end
+
 @implementation OGObject
 
 + (instancetype)wrapperFor:(void *)obj
 {
 	g_assert(G_IS_OBJECT(obj));
-	GQuark quark = [self quark];
+	GQuark quark = [self wrapperQuark];
 
 	id wrapperObject = g_object_get_qdata(obj, quark);
 	// OFLog(@"WrapperObject is %u", wrapperObject);
@@ -42,7 +46,7 @@ ogo_ref_toggle_notify(gpointer data, GObject* object, gboolean is_last_ref) {
 	return [self withGObject:obj];
 }
 
-+ (GQuark)quark
++ (GQuark)wrapperQuark
 {
 	if (OGObjectQuark != 0)
 		return OGObjectQuark;
@@ -84,7 +88,7 @@ ogo_ref_toggle_notify(gpointer data, GObject* object, gboolean is_last_ref) {
 	g_assert(G_IS_OBJECT(obj));
 
 	if (_gObject != NULL) {
-		g_object_set_qdata(_gObject, [OGObject quark], NULL);
+		g_object_set_qdata(_gObject, [OGObject wrapperQuark], NULL);
 		// Decrease the reference count on the previously stored GObject.
 		// Don't provide reference to self to toggle notify in this case because _gObject
 		// is going to be exchanged.
@@ -96,7 +100,7 @@ ogo_ref_toggle_notify(gpointer data, GObject* object, gboolean is_last_ref) {
 	_gObject = obj;
 
 	if (_gObject != NULL) {
-		g_object_set_qdata(_gObject, [OGObject quark], self);
+		g_object_set_qdata(_gObject, [OGObject wrapperQuark], self);
 		// Increase the reference count on the new GObject
 		g_object_add_toggle_ref(_gObject, ogo_ref_toggle_notify, self);
 		// Enable the reverse toggle reference by increasing our own reference count.
@@ -112,7 +116,7 @@ ogo_ref_toggle_notify(gpointer data, GObject* object, gboolean is_last_ref) {
 - (void)dealloc
 {
 	if (_gObject != NULL) {
-		g_object_set_qdata(_gObject, [OGObject quark], NULL);
+		g_object_set_qdata(_gObject, [OGObject wrapperQuark], NULL);
 		// Decrease the reference count on the previously stored GObject.
 		// Don't provide reference to self to toggle notify because self
 		// is going to cease to exist.
