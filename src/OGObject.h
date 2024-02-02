@@ -20,11 +20,6 @@ static GQuark OGObjectQuark;
 	 * The internal GObject pointer
 	 */
 	GObject *_gObject;
-
-	/**
-	 * The local mutex
-	 */
-	OFMutex *_mutex;
 }
 
 + (instancetype)wrapperFor:(void *)obj;

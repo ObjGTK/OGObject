@@ -127,8 +127,6 @@ static void ogo_ref_toggle_notify(gpointer data, GObject *object, gboolean is_la
 			@throw
 			    [OGObjectInitializationFailedException exceptionWithClass:[self class]];
 
-		_mutex = [[OFMutex alloc] init];
-
 		[self setGObject:obj];
 	} @catch (id e) {
 		[self release];
@@ -142,8 +140,7 @@ static void ogo_ref_toggle_notify(gpointer data, GObject *object, gboolean is_la
 {
 	g_assert(G_IS_OBJECT(obj));
 
-	[_mutex lock];
-	@try {
+	@synchronized(self) {
 		if (_gObject != NULL) {
 			g_object_set_qdata(_gObject, [OGObject wrapperQuark], NULL);
 			// Decrease the reference count on the previously stored GObject.
@@ -165,8 +162,6 @@ static void ogo_ref_toggle_notify(gpointer data, GObject *object, gboolean is_la
 			// count.
 			[self retain];
 		}
-	} @finally {
-		[_mutex unlock];
 	}
 }
 
@@ -177,8 +172,7 @@ static void ogo_ref_toggle_notify(gpointer data, GObject *object, gboolean is_la
 
 - (void)dealloc
 {
-	[_mutex lock];
-	@try {
+	@synchronized(self) {
 		if (_gObject != NULL) {
 			g_object_set_qdata(_gObject, [OGObject wrapperQuark], NULL);
 			// Decrease the reference count on the previously stored GObject.
@@ -187,9 +181,6 @@ static void ogo_ref_toggle_notify(gpointer data, GObject *object, gboolean is_la
 			g_object_remove_toggle_ref(_gObject, ogo_ref_toggle_notify, nil);
 			_gObject = NULL;
 		}
-	} @finally {
-		[_mutex unlock];
-		[_mutex release];
 	}
 	[super dealloc];
 }
