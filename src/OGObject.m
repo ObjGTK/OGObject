@@ -73,7 +73,7 @@ static void ogo_ref_toggle_notify(gpointer data, GObject *object, gboolean is_la
 {
 	g_assert(G_IS_OBJECT(obj));
 	GQuark quark = [self wrapperQuark];
-	id returnObject;
+
 	OGMutexLock();
 	@try {
 		id wrapperObject = g_object_get_qdata(obj, quark);
@@ -86,11 +86,10 @@ static void ogo_ref_toggle_notify(gpointer data, GObject *object, gboolean is_la
 		}
 
 		// OFLog(@"Creating new instance of class %@.", [self className]);
-		returnObject = [self withGObject:obj];
+		return [self withGObject:obj];
 	} @finally {
 		OGMutexUnlock();
 	}
-	return returnObject;
 }
 
 + (GQuark)wrapperQuark
