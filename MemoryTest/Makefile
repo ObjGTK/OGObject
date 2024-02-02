@@ -3,9 +3,9 @@ ifeq ($(PREFIX),)
 endif
 PATH  := /usr/local/bin:$(PATH)
 CC    := clang
-CFLAGS := $$(objfw-config --package OGEBook --package OGEBookContacts --package OGEDataServer --package OGCamel --package OGObject --cppflags)
+CFLAGS := $$(objfw-config --package OGObject --cppflags)
 OBJCFLAGS := $$(objfw-config --objcflags)
-LIBS := $$(objfw-config --package OGEBook --package OGEBookContacts --package OGEDataServer --package OGCamel --package OGObject --rpath --libs)
+LIBS := $$(objfw-config --package OGObject --rpath --libs)
 
 OBJ := obj
 
