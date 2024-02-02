@@ -56,7 +56,7 @@ AS_IF([test x"$enable_static" = x"yes" -o x"$enable_shared" = x"no"], [
 	AC_SUBST(OGOBJECT_STATIC_LIB, "libogobject.a")
 ])
 
-AC_ARG_WITH(gobject, AS_HELP_STRING([--with-glib=PREFIX],
+AC_ARG_WITH(gobject, AS_HELP_STRING([--with-gobject=PREFIX],
 	[build with gobject-2.0 in the specified prefix]))
 AS_IF([test x"$with_gobject" != x"no" -a x"$with_gobject" != x""], [
  	OGOBJECT_CPPFLAGS="$OGOBJECT_CPPFLAGS -I$with_gobject/include"
