@@ -11,16 +11,39 @@ static OFString const *OGObjectQuarkName = @"ogobject-objc-wrapper";
 static GQuark OGObjectQuark = 0;
 
 // Global mutex
-static OFMutex *mutex = nil;
-static void releaseMutex(void) { [mutex release]; }
+static OFPlainMutex globalMutex;
 
-static OFMutex *OGGlobalMutex()
+static void OGMutexFree(void)
 {
-	if (mutex == nil) {
-		mutex = [[OFMutex alloc] init];
-		atexit(releaseMutex);
-	}
-	return mutex;
+	int error = OFPlainMutexFree(&globalMutex);
+
+	if (error != 0) {
+		OFEnsure(error == EBUSY);
+
+		@throw [OFStillLockedException exception];
+	};
+}
+
+OF_CONSTRUCTOR()
+{
+	OFEnsure(OFPlainMutexNew(&globalMutex) == 0);
+	atexit(OGMutexFree);
+}
+
+static void OGMutexLock()
+{
+	int error = OFPlainMutexLock(&globalMutex);
+
+	if (error != 0)
+		@throw [OFLockFailedException exception];
+}
+
+static void OGMutexUnlock()
+{
+	int error = OFPlainMutexUnlock(&globalMutex);
+
+	if (error != 0)
+		@throw [OFUnlockFailedException exception];
 }
 
 static void ogo_ref_toggle_notify(gpointer data, GObject *object, gboolean is_last_ref)
@@ -29,15 +52,14 @@ static void ogo_ref_toggle_notify(gpointer data, GObject *object, gboolean is_la
 	g_assert(object != NULL);
 	id wrapperObject = (id)data;
 
-	OFMutex *globalMutex = OGGlobalMutex();
-	[globalMutex lock];
+	OGMutexLock();
 	@try {
 		if (!is_last_ref && wrapperObject != nil && object != NULL)
 			[wrapperObject retain];
 		else if (is_last_ref && wrapperObject != nil && object != NULL)
 			[wrapperObject release];
 	} @finally {
-		[globalMutex unlock];
+		OGMutexUnlock();
 	}
 }
 
@@ -51,9 +73,8 @@ static void ogo_ref_toggle_notify(gpointer data, GObject *object, gboolean is_la
 {
 	g_assert(G_IS_OBJECT(obj));
 	GQuark quark = [self wrapperQuark];
-
-	OFMutex *globalMutex = OGGlobalMutex();
-	[globalMutex lock];
+	id returnObject;
+	OGMutexLock();
 	@try {
 		id wrapperObject = g_object_get_qdata(obj, quark);
 		// OFLog(@"WrapperObject is %u", wrapperObject);
@@ -65,10 +86,11 @@ static void ogo_ref_toggle_notify(gpointer data, GObject *object, gboolean is_la
 		}
 
 		// OFLog(@"Creating new instance of class %@.", [self className]);
-		return [self withGObject:obj];
+		returnObject = [self withGObject:obj];
 	} @finally {
-		[globalMutex unlock];
+		OGMutexUnlock();
 	}
+	return returnObject;
 }
 
 + (GQuark)wrapperQuark
@@ -76,15 +98,14 @@ static void ogo_ref_toggle_notify(gpointer data, GObject *object, gboolean is_la
 	if (OGObjectQuark != 0)
 		return OGObjectQuark;
 
-	OFMutex *globalMutex = OGGlobalMutex();
-	[globalMutex lock];
+	OGMutexLock();
 	@try {
-
 		OGObjectQuark = g_quark_from_string([OGObjectQuarkName UTF8String]);
+
 		return OGObjectQuark;
 
 	} @finally {
-		[globalMutex unlock];
+		OGMutexUnlock();
 	}
 }
 
