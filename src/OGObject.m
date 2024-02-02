@@ -10,19 +10,39 @@
 static OFString const *OGObjectQuarkName = @"ogobject-objc-wrapper";
 static GQuark OGObjectQuark = 0;
 
-static void
-ogo_ref_toggle_notify(gpointer data, GObject* object, gboolean is_last_ref) {
+// Global mutex
+static OFMutex *mutex = nil;
+static void releaseMutex(void) { [mutex release]; }
+
+static OFMutex *OGGlobalMutex()
+{
+	if (mutex == nil) {
+		mutex = [[OFMutex alloc] init];
+		atexit(releaseMutex);
+	}
+	return mutex;
+}
+
+static void ogo_ref_toggle_notify(gpointer data, GObject *object, gboolean is_last_ref)
+{
 	g_assert(data != NULL);
 	g_assert(object != NULL);
 	id wrapperObject = (id)data;
-	if(!is_last_ref && wrapperObject != nil && object != NULL)
-		[wrapperObject retain];
-	else if (is_last_ref && wrapperObject != nil && object != NULL)
-		[wrapperObject release];
+
+	OFMutex *globalMutex = OGGlobalMutex();
+	[globalMutex lock];
+	@try {
+		if (!is_last_ref && wrapperObject != nil && object != NULL)
+			[wrapperObject retain];
+		else if (is_last_ref && wrapperObject != nil && object != NULL)
+			[wrapperObject release];
+	} @finally {
+		[globalMutex unlock];
+	}
 }
 
 @interface OGObject ()
-	+ (GQuark)wrapperQuark;
++ (GQuark)wrapperQuark;
 @end
 
 @implementation OGObject
@@ -32,18 +52,23 @@ ogo_ref_toggle_notify(gpointer data, GObject* object, gboolean is_last_ref) {
 	g_assert(G_IS_OBJECT(obj));
 	GQuark quark = [self wrapperQuark];
 
-	id wrapperObject = g_object_get_qdata(obj, quark);
-	// OFLog(@"WrapperObject is %u", wrapperObject);
-	if (wrapperObject != NULL && wrapperObject != nil &&
-	    [wrapperObject isKindOfClass:[self class]]) {
-		//	OFLog(@"Found a wrapper of type %@, returning.",
-		//    [wrapperObject className]);
-		return wrapperObject;
+	OFMutex *globalMutex = OGGlobalMutex();
+	[globalMutex lock];
+	@try {
+		id wrapperObject = g_object_get_qdata(obj, quark);
+		// OFLog(@"WrapperObject is %u", wrapperObject);
+		if (wrapperObject != NULL && wrapperObject != nil &&
+		    [wrapperObject isKindOfClass:[self class]]) {
+			//	OFLog(@"Found a wrapper of type %@, returning.",
+			//    [wrapperObject className]);
+			return wrapperObject;
+		}
+
+		// OFLog(@"Creating new instance of class %@.", [self className]);
+		return [self withGObject:obj];
+	} @finally {
+		[globalMutex unlock];
 	}
-
-	// OFLog(@"Creating new instance of class %@.", [self className]);
-
-	return [self withGObject:obj];
 }
 
 + (GQuark)wrapperQuark
@@ -51,8 +76,16 @@ ogo_ref_toggle_notify(gpointer data, GObject* object, gboolean is_last_ref) {
 	if (OGObjectQuark != 0)
 		return OGObjectQuark;
 
-	OGObjectQuark = g_quark_from_string([OGObjectQuarkName UTF8String]);
-	return OGObjectQuark;
+	OFMutex *globalMutex = OGGlobalMutex();
+	[globalMutex lock];
+	@try {
+
+		OGObjectQuark = g_quark_from_string([OGObjectQuarkName UTF8String]);
+		return OGObjectQuark;
+
+	} @finally {
+		[globalMutex unlock];
+	}
 }
 
 + (instancetype)withGObject:(void *)obj
@@ -71,8 +104,10 @@ ogo_ref_toggle_notify(gpointer data, GObject* object, gboolean is_last_ref) {
 
 	@try {
 		if (obj == NULL)
-			@throw [OGObjectInitializationFailedException
-			    exceptionWithClass:[self class]];
+			@throw
+			    [OGObjectInitializationFailedException exceptionWithClass:[self class]];
+
+		_mutex = [[OFMutex alloc] init];
 
 		[self setGObject:obj];
 	} @catch (id e) {
@@ -87,24 +122,31 @@ ogo_ref_toggle_notify(gpointer data, GObject* object, gboolean is_last_ref) {
 {
 	g_assert(G_IS_OBJECT(obj));
 
-	if (_gObject != NULL) {
-		g_object_set_qdata(_gObject, [OGObject wrapperQuark], NULL);
-		// Decrease the reference count on the previously stored GObject.
-		// Don't provide reference to self to toggle notify in this case because _gObject
-		// is going to be exchanged.
-		g_object_remove_toggle_ref(_gObject, ogo_ref_toggle_notify, nil);
-		// Disable the reverse toggle reference be decreasing our own reference count.
-		[self release];
-	}
+	[_mutex lock];
+	@try {
+		if (_gObject != NULL) {
+			g_object_set_qdata(_gObject, [OGObject wrapperQuark], NULL);
+			// Decrease the reference count on the previously stored GObject.
+			// Don't provide reference to self to toggle notify in this case because
+			// _gObject is going to be exchanged.
+			g_object_remove_toggle_ref(_gObject, ogo_ref_toggle_notify, nil);
+			// Disable the reverse toggle reference be decreasing our own reference
+			// count.
+			[self release];
+		}
 
-	_gObject = obj;
+		_gObject = obj;
 
-	if (_gObject != NULL) {
-		g_object_set_qdata(_gObject, [OGObject wrapperQuark], self);
-		// Increase the reference count on the new GObject
-		g_object_add_toggle_ref(_gObject, ogo_ref_toggle_notify, self);
-		// Enable the reverse toggle reference by increasing our own reference count.
-		[self retain];
+		if (_gObject != NULL) {
+			g_object_set_qdata(_gObject, [OGObject wrapperQuark], self);
+			// Increase the reference count on the new GObject
+			g_object_add_toggle_ref(_gObject, ogo_ref_toggle_notify, self);
+			// Enable the reverse toggle reference by increasing our own reference
+			// count.
+			[self retain];
+		}
+	} @finally {
+		[_mutex unlock];
 	}
 }
 
@@ -115,13 +157,19 @@ ogo_ref_toggle_notify(gpointer data, GObject* object, gboolean is_last_ref) {
 
 - (void)dealloc
 {
-	if (_gObject != NULL) {
-		g_object_set_qdata(_gObject, [OGObject wrapperQuark], NULL);
-		// Decrease the reference count on the previously stored GObject.
-		// Don't provide reference to self to toggle notify because self
-		// is going to cease to exist.
-		g_object_remove_toggle_ref(_gObject, ogo_ref_toggle_notify, nil);
-		_gObject = NULL;
+	[_mutex lock];
+	@try {
+		if (_gObject != NULL) {
+			g_object_set_qdata(_gObject, [OGObject wrapperQuark], NULL);
+			// Decrease the reference count on the previously stored GObject.
+			// Don't provide reference to self to toggle notify because self
+			// is going to cease to exist.
+			g_object_remove_toggle_ref(_gObject, ogo_ref_toggle_notify, nil);
+			_gObject = NULL;
+		}
+	} @finally {
+		[_mutex unlock];
+		[_mutex release];
 	}
 	[super dealloc];
 }
