@@ -22,8 +22,6 @@ static GQuark OGObjectQuark;
 	GObject *_gObject;
 }
 
-+ (instancetype)wrapperFor:(void *)obj;
-
 /**
  * Returns a new instance of OGObject with the internal GObject set to obj
  *
