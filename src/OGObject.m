@@ -10,6 +10,17 @@
 static OFString const *OGObjectQuarkName = @"ogobject-objc-wrapper";
 static GQuark OGObjectQuark = 0;
 
+struct SigData {
+    id target;
+    SEL sel;
+    Class class;
+};
+
+static void gsignal_handler(gpointer target, struct SigData *data)
+{
+    [data->target performSelector: data->sel withObject: [[data->class alloc] initWithGObject: target]];
+}
+
 static void refToggleNotify(gpointer data, GObject *object, gboolean is_last_ref)
 {
 	g_assert(data != NULL);
@@ -136,6 +147,20 @@ static void initObjectQuark(void)
 		}
 	}
 	[super dealloc];
+}
+
+- (void)connectSignal: (OFString *)signal target: (id)target selector: (SEL)sel
+{
+	guint signalId = g_signal_lookup([signal UTF8String], G_OBJECT_TYPE(_gObject));
+	if (signalId == 0)
+		@throw [OGErrorException exceptionWithMessage: [OFString stringWithFormat: @"Signal %@ not found", signal]];
+
+	struct SigData *data = malloc(sizeof(struct SigData));
+	data->target = target;
+	data->sel = sel;
+	data->class = [target class];
+
+	g_signal_connect_data(_gObject, [signal UTF8String], G_CALLBACK(gsignal_handler), data, free, 0);
 }
 
 @end
