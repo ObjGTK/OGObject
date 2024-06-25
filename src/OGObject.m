@@ -6,6 +6,7 @@
 
 #import "OGObject.h"
 #import "OGObjectInitializationFailedException.h"
+#import "OGObjectInitializationRaceConditionException.h"
 
 static OFString const *OGObjectQuarkName = @"ogobject-objc-wrapper";
 static GQuark OGObjectQuark = 0;
@@ -106,10 +107,14 @@ static void initObjectQuark(void)
 
 	@synchronized(self) {
 		if (_gObject != NULL) {
-			g_object_set_qdata(_gObject, [OGObject wrapperQuark], NULL);
+			if (!g_object_replace_qdata(
+			        _gObject, [OGObject wrapperQuark], self, NULL, NULL, NULL))
+				@throw [OGObjectInitializationRaceConditionException
+				    exceptionWithClass:[self class]];
+
 			// Decrease the reference count on the previously stored GObject.
-			// Don't provide reference to self to toggle notify in this case because
-			// _gObject is going to be exchanged.
+			// Don't provide reference to self to toggle notify in this case
+			// because _gObject is going to be exchanged.
 			g_object_remove_toggle_ref(_gObject, refToggleNotify, nil);
 			// Disable the reverse toggle reference by decreasing our own reference
 			// count.
@@ -119,7 +124,11 @@ static void initObjectQuark(void)
 		_gObject = obj;
 
 		if (_gObject != NULL) {
-			g_object_set_qdata(_gObject, [OGObject wrapperQuark], self);
+			if (!g_object_replace_qdata(
+			        _gObject, [OGObject wrapperQuark], NULL, self, NULL, NULL))
+				@throw [OGObjectInitializationRaceConditionException
+				    exceptionWithClass:[self class]];
+
 			// Increase the reference count on the new GObject
 			g_object_add_toggle_ref(_gObject, refToggleNotify, self);
 			// Enable the reverse toggle reference by increasing our own reference
@@ -138,7 +147,9 @@ static void initObjectQuark(void)
 {
 	@synchronized(self) {
 		if (_gObject != NULL) {
-			g_object_set_qdata(_gObject, [OGObject wrapperQuark], NULL);
+			g_object_replace_qdata(
+			    _gObject, [OGObject wrapperQuark], self, NULL, NULL, NULL);
+
 			// Decrease the reference count on the previously stored GObject.
 			// Don't provide reference to self to toggle notify because self
 			// is going to cease to exist.

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2021-2022 Johannes Brakensiek <objfw@devbeejohn.de>
+ * SPDX-FileCopyrightText: 2021-2024 Johannes Brakensiek <objfw@devbeejohn.de>
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
@@ -7,8 +7,7 @@
 
 OF_ASSUME_NONNULL_BEGIN
 
-@interface OGObjectInitializationFailedException
-    : OFInitializationFailedException
+@interface OGObjectInitializationFailedException: OFInitializationFailedException
 
 - (OFString *)description;
 

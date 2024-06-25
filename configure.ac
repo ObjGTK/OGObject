@@ -66,14 +66,14 @@ AS_IF([test x"$with_gobject" != x"no" -a x"$with_gobject" != x""], [
     FRAMEWORK_LIBS="-L$with_gobject/lib $FRAMEWORK_LIBS"
 ])
 
-PKG_CHECK_MODULES([gobject2], [gobject-2.0 >= 2.78.0], [
+PKG_CHECK_MODULES([gobject2], [gobject-2.0 >= 2.74.0], [
 	OGOBJECT_CPPFLAGS="$OGOBJECT_CPPFLAGS $gobject2_CFLAGS"
 	OGOBJECT_LIBS="$OGOBJECT_LIBS $gobject2_LIBS"
 	CPPFLAGS="$CPPFLAGS $gobject2_CFLAGS"
 	LIBS="$LIBS $gobject2_LIBS"
 	FRAMEWORK_LIBS="$FRAMEWORK_LIBS $gobject2_LIBS"
 ], [
-	AC_MSG_ERROR(You need gobject-2.0 >= 2.78.0 installed!)
+	AC_MSG_ERROR(You need gobject-2.0 >= 2.74.0 installed!)
 ])
 
 AS_IF([test x"$GOBJC" = x"yes"], [
