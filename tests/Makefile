@@ -1,0 +1,22 @@
+include ../extra.mk
+
+PROG_NOINST = tests${PROG_SUFFIX}
+
+SRCS = OGObjectTests.m			\
+       OGGObjectTests.m
+
+include ../buildsys.mk
+
+run:
+	./${PROG_NOINST} ${TESTCASES}; EXIT=$$?; \
+	exit $$EXIT
+
+CPPFLAGS += -I../src				\
+	    -DPROG_SUFFIX=\"${PROG_SUFFIX}\"
+
+LIBS := -L../src/test	\
+	-lobjfwtest		\
+	${TESTS_LIBS}		\
+	${LIBS}
+
+LD = ${OBJC}

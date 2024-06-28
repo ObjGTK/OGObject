@@ -76,6 +76,13 @@ PKG_CHECK_MODULES([gobject2], [gobject-2.0 >= 2.34.0], [
 	AC_MSG_ERROR(You need gobject-2.0 >= 2.34.0 installed!)
 ])
 
+AS_IF([test x"$build_framework" = x"yes"], [
+	TESTS_LIBS="-framework OGObject $TESTS_LIBS"
+	TESTS_LIBS="-F../src $TESTS_LIBS"
+], [
+	TESTS_LIBS="-L../src -logobject $TESTS_LIBS"
+])
+
 AS_IF([test x"$GOBJC" = x"yes"], [
 	OBJCFLAGS="$OBJCFLAGS -Wwrite-strings -Wpointer-arith -Werror"
 ])
@@ -84,6 +91,8 @@ dnl We don't call AC_PROG_CPP, but only AC_PROG_OBJCPP and set CPP to OBJCPP
 dnl and add OBJCPPFLAGS to CPPFLAGS, thus we need to AC_SUBST these ourself.
 AC_SUBST(CPP)
 AC_SUBST(CPPFLAGS)
+
+AC_SUBST(TESTS_LIBS)
 
 AC_SUBST(OGOBJECT_CPPFLAGS)
 AC_SUBST(OGOBJECT_LIBS)
