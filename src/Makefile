@@ -6,9 +6,10 @@ FRAMEWORK = ${OGOBJECT_FRAMEWORK}
 LIB_MAJOR = 0
 LIB_MINOR = 1
 
-SRCS = $(wildcard *.m)
-
-INCLUDES = ${SRCS:.m=.h}
+SRCS = OGErrorException.m \
+	OGObjectInitializationFailedException.m \
+	OGObjectInitializationRaceConditionException.m \
+	OGObject.m
 
 include ../buildsys.mk
 

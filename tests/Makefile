@@ -3,7 +3,8 @@ include ../extra.mk
 PROG_NOINST = tests${PROG_SUFFIX}
 
 SRCS = OGObjectTests.m			\
-       OGGObjectTests.m
+       OGGObjectTests.m			\
+       OGWrapperTests.m
 
 include ../buildsys.mk
 
