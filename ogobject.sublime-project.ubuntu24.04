@@ -1,0 +1,28 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings":
+	{
+		"ecc_use_libclang": true,
+		"ecc_show_type_info": true,
+		"ecc_libclang_path": "/usr/lib64/libclang.so.17.0.6",
+		"ecc_common_flags" : [
+    		"-I/usr/include",
+    		"-I/usr/local/include",
+    		"-I$project_base_path/src",
+    		// this is needed to include the correct headers for clang
+    		"-I/usr/lib64/clang/$clang_version/include",
+		],
+		"ecc_lang_flags": {
+			"C": ["-std=c11"],
+  			"CPP": ["-std=c++11"],
+  			"OBJECTIVE_C": ["-x", "objective-c", "-fconstant-string-class=OFConstantString", "-fno-constant-cfstrings"],
+  			"OBJECTIVE_CPP": ["-x", "objective-c", "-fconstant-string-class=OFConstantString", "-fno-constant-cfstrings"]
+  		},
+  		"ecc_triggers" : [ ".", "->", ":", "::", " ", "  ", "(", "[" ],
+	}
+}
