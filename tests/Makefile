@@ -15,8 +15,7 @@ run:
 CPPFLAGS += -I../src				\
 	    -DPROG_SUFFIX=\"${PROG_SUFFIX}\"
 
-LIBS := -L../src/test	\
-	-lobjfwtest		\
+LIBS := -lobjfwtest		\
 	${TESTS_LIBS}		\
 	${LIBS}
 
