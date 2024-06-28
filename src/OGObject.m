@@ -92,10 +92,10 @@ static void initObjectQuark(void)
 
 - (void)setGObject:(void *)obj
 {
-	g_assert(G_IS_OBJECT(obj));
-
 	@synchronized(self) {
 		if (_gObject != NULL) {
+			g_assert(G_IS_OBJECT(_gObject));
+
 			if (!g_object_replace_qdata(
 			        _gObject, [OGObject wrapperQuark], self, NULL, NULL, NULL))
 				@throw [OGObjectInitializationRaceConditionException
@@ -113,6 +113,8 @@ static void initObjectQuark(void)
 		_gObject = obj;
 
 		if (_gObject != NULL) {
+			g_assert(G_IS_OBJECT(_gObject));
+
 			if (!g_object_replace_qdata(
 			        _gObject, [OGObject wrapperQuark], NULL, self, NULL, NULL))
 				@throw [OGObjectInitializationRaceConditionException
