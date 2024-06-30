@@ -1,4 +1,5 @@
 include ../extra.mk
+include ../OGObject.mk
 
 SHARED_LIB = ${OGOBJECT_SHARED_LIB}
 STATIC_LIB = ${OGOBJECT_STATIC_LIB}
