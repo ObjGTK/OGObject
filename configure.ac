@@ -9,8 +9,6 @@ for i in configure.ac build-aux/m4/*; do
 	])
 done
 
-BUILDSYS_INIT
-
 AC_CHECK_TOOL(OBJFW_CONFIG, objfw-config)
 AS_IF([test x"$OBJFW_CONFIG" = x""], [
 	AC_MSG_ERROR(You need ObjFW and objfw-config installed!)
@@ -86,6 +84,8 @@ AS_IF([test x"$build_framework" = x"yes"], [
 AS_IF([test x"$GOBJC" = x"yes"], [
 	OBJCFLAGS="$OBJCFLAGS -Wwrite-strings -Wpointer-arith -Werror"
 ])
+
+BUILDSYS_INIT
 
 dnl We don't call AC_PROG_CPP, but only AC_PROG_OBJCPP and set CPP to OBJCPP
 dnl and add OBJCPPFLAGS to CPPFLAGS, thus we need to AC_SUBST these ourself.
