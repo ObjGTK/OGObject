@@ -59,4 +59,6 @@ static GQuark OGObjectQuark;
  */
 - (GObject *)gObject;
 
+- (void)connectSignal: (OFString *)signal target: (id)target selector: (SEL)sel;
+
 @end
