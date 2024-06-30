@@ -9,11 +9,10 @@
 @synthesize gobject = _gobject;
 @synthesize myWrapper = _myWrapper;
 
-- (void)dealloc {
-  [_myWrapper release];
-
-  [super dealloc];
-}
+// Releasing the wrapper is part of some tests, so don't do it here
+// - (void)dealloc {
+//   [super dealloc];
+// }
 
 - (void)setUp {
   [super setUp];
