@@ -147,6 +147,7 @@ $RECYCLE.BIN/
 configure
 *.oc
 buildsys.mk
+OGObject.mk
 config.log
 config.status
 extra.mk
