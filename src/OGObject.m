@@ -17,6 +17,11 @@ struct SigData {
 	Class class;
 };
 
+static void free_malloced_ptr(gpointer target, GClosure *cl)
+{
+  free(target);
+}
+
 static void gsignal_handler(gpointer target, struct SigData *data)
 {
 	[data->target performSelector:data->sel
@@ -177,7 +182,7 @@ static void initObjectQuark(void)
 	data->class = [target class];
 
 	g_signal_connect_data(
-	    _gObject, [signal UTF8String], G_CALLBACK(gsignal_handler), data, free, 0);
+	    _gObject, [signal UTF8String], G_CALLBACK(gsignal_handler), data, free_malloced_ptr, 0);
 }
 
 @end
