@@ -12,14 +12,15 @@ static OFString const *OGObjectQuarkName = @"ogobject-objc-wrapper";
 static GQuark OGObjectQuark = 0;
 
 struct SigData {
-    id target;
-    SEL sel;
-    Class class;
+	id target;
+	SEL sel;
+	Class class;
 };
 
 static void gsignal_handler(gpointer target, struct SigData *data)
 {
-    [data->target performSelector: data->sel withObject: [[data->class alloc] initWithGObject: target]];
+	[data->target performSelector:data->sel
+	                   withObject:[[data->class alloc] initWithGObject:target]];
 }
 
 static void refToggleNotify(gpointer data, GObject *object, gboolean is_last_ref)
@@ -66,6 +67,23 @@ static void initObjectQuark(void)
 
 	id retVal = (id)[[self alloc] initWithGObject:obj];
 	return [retVal autorelease];
+}
+
+- (void)dealloc
+{
+	@synchronized(self) {
+		if (_gObject != NULL) {
+			g_object_replace_qdata(
+			    _gObject, [OGObject wrapperQuark], self, NULL, NULL, NULL);
+
+			// Decrease the reference count on the previously stored GObject.
+			// Don't provide reference to self to toggle notify because self
+			// is going to cease to exist.
+			g_object_remove_toggle_ref(_gObject, refToggleNotify, nil);
+			_gObject = NULL;
+		}
+	}
+	[super dealloc];
 }
 
 - (instancetype)initWithGObject:(void *)obj
@@ -145,35 +163,21 @@ static void initObjectQuark(void)
 	return _gObject;
 }
 
-- (void)dealloc
-{
-	@synchronized(self) {
-		if (_gObject != NULL) {
-			g_object_replace_qdata(
-			    _gObject, [OGObject wrapperQuark], self, NULL, NULL, NULL);
-
-			// Decrease the reference count on the previously stored GObject.
-			// Don't provide reference to self to toggle notify because self
-			// is going to cease to exist.
-			g_object_remove_toggle_ref(_gObject, refToggleNotify, nil);
-			_gObject = NULL;
-		}
-	}
-	[super dealloc];
-}
-
-- (void)connectSignal: (OFString *)signal target: (id)target selector: (SEL)sel
+- (void)connectSignal:(OFString *)signal target:(id)target selector:(SEL)sel
 {
 	guint signalId = g_signal_lookup([signal UTF8String], G_OBJECT_TYPE(_gObject));
 	if (signalId == 0)
-		@throw [OGErrorException exceptionWithMessage: [OFString stringWithFormat: @"Signal %@ not found", signal]];
+		@throw [OGErrorException
+		    exceptionWithMessage:[OFString
+		                             stringWithFormat:@"Signal %@ not found", signal]];
 
 	struct SigData *data = malloc(sizeof(struct SigData));
 	data->target = target;
 	data->sel = sel;
 	data->class = [target class];
 
-	g_signal_connect_data(_gObject, [signal UTF8String], G_CALLBACK(gsignal_handler), data, free, 0);
+	g_signal_connect_data(
+	    _gObject, [signal UTF8String], G_CALLBACK(gsignal_handler), data, free, 0);
 }
 
 @end
