@@ -59,6 +59,13 @@ static GQuark OGObjectQuark;
  */
 - (GObject *)gObject;
 
-- (void)connectSignal: (OFString *)signal target: (id)target selector: (SEL)sel;
+/**
+ * @brief      Connects a GObject signal named to a ObjC selector specified.
+ *
+ * @param      signal  Name of signal
+ * @param      target  ObjC target target
+ * @param      sel     ObjC selector
+ */
+- (void)connectSignal:(OFString *)signal target:(id)target selector:(SEL)sel;
 
 @end
