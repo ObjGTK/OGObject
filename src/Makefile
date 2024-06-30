@@ -10,6 +10,7 @@ LIB_MINOR = 1
 SRCS = OGErrorException.m \
 	OGObjectInitializationFailedException.m \
 	OGObjectInitializationRaceConditionException.m \
+	OGObjectSignalNotFoundException.m \
 	OGObject.m
 
 include ../buildsys.mk
