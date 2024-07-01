@@ -170,7 +170,7 @@ static void initObjectQuark(void)
 	return _gObject;
 }
 
-- (void)connectSignal:(OFString *)signal target:(id)target selector:(SEL)sel
+- (gulong)connectSignal:(OFString *)signal target:(id)target selector:(SEL)sel
 {
 	guint signalId = g_signal_lookup([signal UTF8String], G_OBJECT_TYPE(_gObject));
 	if (signalId == 0)
@@ -181,7 +181,7 @@ static void initObjectQuark(void)
 	data->sel = sel;
 	data->emitter = self;
 
-	g_signal_connect_data(
+	return g_signal_connect_data(
 	    _gObject, [signal UTF8String], G_CALLBACK(gsignal_handler), data, free_malloced_ptr, 0);
 }
 

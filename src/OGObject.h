@@ -66,7 +66,8 @@ static GQuark OGObjectQuark;
  * @param      signal  Name of signal
  * @param      target  ObjC target target
  * @param      sel     ObjC selector
+ * @return     The GObject handler ID (always greater than 0)
  */
-- (void)connectSignal:(OFString *)signal target:(id)target selector:(SEL)sel;
+- (gulong)connectSignal:(OFString *)signal target:(id)target selector:(SEL)sel;
 
 @end
