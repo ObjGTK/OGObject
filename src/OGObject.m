@@ -16,7 +16,7 @@ static GQuark OGObjectQuark = 0;
 struct SigData {
 	id target;
 	SEL sel;
-	Class class;
+	id emitter;
 };
 
 static void free_malloced_ptr(gpointer target, GClosure *cl)
@@ -27,7 +27,7 @@ static void free_malloced_ptr(gpointer target, GClosure *cl)
 static void gsignal_handler(gpointer target, struct SigData *data)
 {
 	[data->target performSelector:data->sel
-	                   withObject:[[data->class alloc] initWithGObject:target]];
+	                   withObject:data->emitter];
 }
 
 static void refToggleNotify(gpointer data, GObject *object, gboolean is_last_ref)
@@ -179,7 +179,7 @@ static void initObjectQuark(void)
 	struct SigData *data = malloc(sizeof(struct SigData));
 	data->target = target;
 	data->sel = sel;
-	data->class = [self class];
+	data->emitter = self;
 
 	g_signal_connect_data(
 	    _gObject, [signal UTF8String], G_CALLBACK(gsignal_handler), data, free_malloced_ptr, 0);
