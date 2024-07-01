@@ -1,12 +1,14 @@
 /*
  * SPDX-FileCopyrightText: 2015-2017 Tyler Burton <software@tylerburton.ca>
  * SPDX-FileCopyrightText: 2021-2024 Johannes Brakensiek <objfw@devbeejohn.de>
+ * SPDX-FileCopyrightText: 2024 Amrit Bhogal <ambhogal01@gmail.com>
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
 #import "OGObject.h"
 #import "OGObjectInitializationFailedException.h"
 #import "OGObjectInitializationRaceConditionException.h"
+#import "OGObjectSignalNotFoundException.h"
 
 static OFString const *OGObjectQuarkName = @"ogobject-objc-wrapper";
 static GQuark OGObjectQuark = 0;
@@ -16,6 +18,11 @@ struct SigData {
 	SEL sel;
 	Class class;
 };
+
+static void free_malloced_ptr(gpointer target, GClosure *cl)
+{
+	free(target);
+}
 
 static void gsignal_handler(gpointer target, struct SigData *data)
 {
@@ -167,9 +174,7 @@ static void initObjectQuark(void)
 {
 	guint signalId = g_signal_lookup([signal UTF8String], G_OBJECT_TYPE(_gObject));
 	if (signalId == 0)
-		@throw [OGErrorException
-		    exceptionWithMessage:[OFString
-		                             stringWithFormat:@"Signal %@ not found", signal]];
+		@throw [OGObjectSignalNotFoundException exceptionWithSignal:signal];
 
 	struct SigData *data = malloc(sizeof(struct SigData));
 	data->target = target;
@@ -177,7 +182,7 @@ static void initObjectQuark(void)
 	data->class = [target class];
 
 	g_signal_connect_data(
-	    _gObject, [signal UTF8String], G_CALLBACK(gsignal_handler), data, free, 0);
+	    _gObject, [signal UTF8String], G_CALLBACK(gsignal_handler), data, free_malloced_ptr, 0);
 }
 
 @end
