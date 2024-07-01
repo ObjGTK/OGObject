@@ -3,7 +3,6 @@ include extra.mk
 SUBDIRS = src tests
 
 include buildsys.mk
-include OGObject.mk
 
 check: tests
 	${MAKE} -C tests -s run

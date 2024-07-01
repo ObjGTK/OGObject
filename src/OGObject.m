@@ -19,15 +19,11 @@ struct SigData {
 	id emitter;
 };
 
-static void free_malloced_ptr(gpointer target, GClosure *cl)
-{
-	free(target);
-}
+static void free_malloced_ptr(gpointer target, GClosure *cl) { free(target); }
 
 static void gsignal_handler(gpointer target, struct SigData *data)
 {
-	[data->target performSelector:data->sel
-	                   withObject:data->emitter];
+	[data->target performSelector:data->sel withObject:data->emitter];
 }
 
 static void refToggleNotify(gpointer data, GObject *object, gboolean is_last_ref)
@@ -38,6 +34,9 @@ static void refToggleNotify(gpointer data, GObject *object, gboolean is_last_ref
 
 	if (wrapperObject != nil) {
 		@synchronized(wrapperObject) {
+			// OFLog(@"Retain count of object type %@ is %i", [wrapperObject class],
+			//     [wrapperObject retainCount]);
+
 			if (!is_last_ref && object != NULL)
 				[wrapperObject retain];
 			else if (is_last_ref && object != NULL)

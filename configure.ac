@@ -96,5 +96,5 @@ AC_SUBST(OGOBJECT_CPPFLAGS)
 AC_SUBST(OGOBJECT_LIBS)
 AC_SUBST(TESTS_LIBS)
 
-AC_CONFIG_FILES([buildsys.mk extra.mk OGObject.mk OGObject.oc])
+AC_CONFIG_FILES([buildsys.mk extra.mk OGObject.oc])
 AC_OUTPUT
