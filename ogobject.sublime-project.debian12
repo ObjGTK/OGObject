@@ -1,0 +1,31 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings":
+	{
+		"ecc_use_libclang": true,
+		"ecc_show_type_info": true,
+		"ecc_libclang_path": "/usr/lib/x86_64-linux-gnu/libclang-14.so",
+		"ecc_common_flags" : [
+			"-I/usr/include/glib/glib.h",
+			"-I/usr/include/glib",
+    		"-I/usr/include",
+    		"-I/usr/include/ObjFWTest",
+    		"-I/usr/local/include",
+    		"-I$project_base_path/src",
+    		// this is needed to include the correct headers for clang
+    		"-I/usr/include/clang/$clang_version/include",
+		],
+		"ecc_lang_flags": {
+			"C": ["-std=c11"],
+  			"CPP": ["-std=c++11"],
+  			"OBJECTIVE_C": ["-x", "objective-c", "-fconstant-string-class=OFConstantString", "-fno-constant-cfstrings"],
+  			"OBJECTIVE_CPP": ["-x", "objective-c", "-fconstant-string-class=OFConstantString", "-fno-constant-cfstrings"]
+  		},
+  		"ecc_triggers" : [ ".", "->", ":", "::", " ", "  ", "(", "[" ],
+	}
+}

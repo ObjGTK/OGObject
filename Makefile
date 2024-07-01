@@ -1,7 +1,12 @@
-SUBDIRS = src
+include extra.mk
+
+SUBDIRS = src tests
 
 include buildsys.mk
-include extra.mk
+include OGObject.mk
+
+check: tests
+	${MAKE} -C tests -s run
 
 install-extra:
 	i=OGObject.oc; \

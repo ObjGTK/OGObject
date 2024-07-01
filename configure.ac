@@ -9,8 +9,6 @@ for i in configure.ac build-aux/m4/*; do
 	])
 done
 
-BUILDSYS_INIT
-
 AC_CHECK_TOOL(OBJFW_CONFIG, objfw-config)
 AS_IF([test x"$OBJFW_CONFIG" = x""], [
 	AC_MSG_ERROR(You need ObjFW and objfw-config installed!)
@@ -56,36 +54,47 @@ AS_IF([test x"$enable_static" = x"yes" -o x"$enable_shared" = x"no"], [
 	AC_SUBST(OGOBJECT_STATIC_LIB, "libogobject.a")
 ])
 
-AC_ARG_WITH(glib, AS_HELP_STRING([--with-glib=PREFIX],
-	[build with glib-2.0 in the specified prefix]))
-AS_IF([test x"$with_glib" != x"no" -a x"$with_glib" != x""], [
- 	GLIB2_CPPFLAGS="-I$with_glib/include"
-	GLIB2_LIBS="-L$with_glib/lib"
-       CPPFLAGS="$CPPFLAGS $GLIB2_CPPFLAGS"
-       LIBS="$LIBS $GLIB2_LIBS"
-       FRAMEWORK_LIBS="$FRAMEWORK_LIBS $GLIB2_LIBS"
+AC_ARG_WITH(gobject, AS_HELP_STRING([--with-gobject=PREFIX],
+	[build with gobject-2.0 in the specified prefix]))
+AS_IF([test x"$with_gobject" != x"no" -a x"$with_gobject" != x""], [
+ 	OGOBJECT_CPPFLAGS="$OGOBJECT_CPPFLAGS -I$with_gobject/include"
+	OGOBJECT_LIBS="$OGOBJECT_LIBS -L$with_gobject/lib"
+    CPPFLAGS=" -I$with_gobject/include $CPPFLAGS"
+    LIBS="-L$with_gobject/lib $LIBS"
+    FRAMEWORK_LIBS="-L$with_gobject/lib $FRAMEWORK_LIBS"
 ])
 
-PKG_CHECK_MODULES([GLib2], [glib-2.0 >= 2.66], [
-	CPPFLAGS="$CPPFLAGS $GLib2_CFLAGS"
-	GLib2_CPPFLAGS="$GLib2_CPPFLAGS $GLib2_CFLAGS"
-	LIBS="$LIBS $GLib2_LIBS"
-	FRAMEWORK_LIBS="$FRAMEWORK_LIBS $GLib2_LIBS"
+PKG_CHECK_MODULES([gobject2], [gobject-2.0 >= 2.34.0], [
+	OGOBJECT_CPPFLAGS="$OGOBJECT_CPPFLAGS $gobject2_CFLAGS"
+	OGOBJECT_LIBS="$OGOBJECT_LIBS $gobject2_LIBS"
+	CPPFLAGS="$CPPFLAGS $gobject2_CFLAGS"
+	LIBS="$LIBS $gobject2_LIBS"
+	FRAMEWORK_LIBS="$FRAMEWORK_LIBS $gobject2_LIBS"
 ], [
-	AC_MSG_ERROR(You need glib-2.0 >= 2.66 installed!)
+	AC_MSG_ERROR(You need gobject-2.0 >= 2.34.0 installed!)
+])
+
+AS_IF([test x"$build_framework" = x"yes"], [
+	TESTS_LIBS="-framework OGObject $TESTS_LIBS"
+	TESTS_LIBS="-F../src $TESTS_LIBS"
+], [
+	TESTS_LIBS="-L../src -logobject $TESTS_LIBS"
 ])
 
 AS_IF([test x"$GOBJC" = x"yes"], [
 	OBJCFLAGS="$OBJCFLAGS -Wwrite-strings -Wpointer-arith -Werror"
 ])
 
+BUILDSYS_INIT
+
 dnl We don't call AC_PROG_CPP, but only AC_PROG_OBJCPP and set CPP to OBJCPP
 dnl and add OBJCPPFLAGS to CPPFLAGS, thus we need to AC_SUBST these ourself.
 AC_SUBST(CPP)
 AC_SUBST(CPPFLAGS)
 
-AC_SUBST(GLib2_CPPFLAGS)
-AC_SUBST(GLib2_LIBS)
+AC_SUBST(OGOBJECT_CPPFLAGS)
+AC_SUBST(OGOBJECT_LIBS)
+AC_SUBST(TESTS_LIBS)
 
-AC_CONFIG_FILES([buildsys.mk extra.mk OGObject.oc])
+AC_CONFIG_FILES([buildsys.mk extra.mk OGObject.mk OGObject.oc])
 AC_OUTPUT

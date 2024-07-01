@@ -1,6 +1,7 @@
 /*
  * SPDX-FileCopyrightText: 2015-2017 Tyler Burton <software@tylerburton.ca>
  * SPDX-FileCopyrightText: 2021-2022 Johannes Brakensiek <objfw@devbeejohn.de>
+ * SPDX-FileCopyrightText: 2024 Amrit Bhogal <ambhogal01@gmail.com>
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
@@ -17,14 +18,10 @@ static GQuark OGObjectQuark;
 @interface OGObject: OFObject
 {
 	/**
-	 * The internal GtkObject pointer
+	 * The internal GObject pointer
 	 */
 	GObject *_gObject;
 }
-
-+ (instancetype)wrapperFor:(void *)obj;
-
-+ (GQuark)quark;
 
 /**
  * Returns a new instance of OGObject with the internal GObject set to obj
@@ -62,5 +59,14 @@ static GQuark OGObjectQuark;
  * @returns the internal GObject
  */
 - (GObject *)gObject;
+
+/**
+ * @brief      Connects a GObject signal named to a ObjC selector specified.
+ *
+ * @param      signal  Name of signal
+ * @param      target  ObjC target target
+ * @param      sel     ObjC selector
+ */
+- (void)connectSignal:(OFString *)signal target:(id)target selector:(SEL)sel;
 
 @end
