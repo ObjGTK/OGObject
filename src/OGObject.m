@@ -179,7 +179,7 @@ static void initObjectQuark(void)
 	struct SigData *data = malloc(sizeof(struct SigData));
 	data->target = target;
 	data->sel = sel;
-	data->class = [target class];
+	data->class = [self class];
 
 	g_signal_connect_data(
 	    _gObject, [signal UTF8String], G_CALLBACK(gsignal_handler), data, free_malloced_ptr, 0);
