@@ -158,3 +158,5 @@ extra.mk
 *.sublime-project
 MemoryTest/MemoryTest
 tests/tests
+*.framework
+*.dylib
