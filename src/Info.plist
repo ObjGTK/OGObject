@@ -7,7 +7,7 @@
         <key>CFBundleName</key>
         <string>OGObject</string>
         <key>CFBundleIdentifier</key>
-        <string>org.codeberg.objgtk.ogobject</string>
+        <string>de.devbeejohn.ogobject</string>
         <key>CFBundleInfoDictionaryVersion</key>
         <string>6.0</string>
         <key>CFBundlePackageType</key>
