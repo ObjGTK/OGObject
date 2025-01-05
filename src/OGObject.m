@@ -10,9 +10,7 @@
 #import "OGObjectInitializationRaceConditionException.h"
 #import "OGObjectSignalNotFoundException.h"
 
-static OFString const *OGObjectQuarkName = @"ogobject-objc-wrapper";
-static GQuark OGObjectQuark = 0;
-
+// Signalling
 struct SigData {
 	id target;
 	SEL sel;
@@ -25,6 +23,10 @@ static void gsignal_handler(gpointer target, struct SigData *data)
 {
 	[data->target performSelector:data->sel withObject:data->emitter];
 }
+
+// Wrapping memory management
+static OFString const *OGObjectQuarkName = @"ogobject-objc-wrapper";
+static GQuark OGObjectQuark = 0;
 
 static void refToggleNotify(gpointer data, GObject *object, gboolean is_last_ref)
 {
@@ -50,11 +52,34 @@ static void initObjectQuark(void)
 	OGObjectQuark = g_quark_from_string([OGObjectQuarkName UTF8String]);
 }
 
-@interface OGObject ()
-+ (GQuark)wrapperQuark;
-@end
+id OGWrapperClassAndObjectForGObject(void *obj)
+{
+	g_assert(G_IS_OBJECT(obj));
+	OFLog(@"GType: %s", g_type_name(G_TYPE_FROM_INSTANCE(obj)));
+
+	Class wrapperClass = g_type_get_qdata(G_OBJECT_TYPE(obj), [OGObject wrapperQuark]);
+
+	OFLog(@"ObjC Class name %@", [wrapperClass className]);
+
+	id wrapperObject = [wrapperClass withGObject:obj];
+
+	if (wrapperObject == nil)
+		OFLog(@"Need to walk the dependency tree!");
+
+	return wrapperObject;
+}
 
 @implementation OGObject
+
++ (void)load
+{
+	GType gtypeToAssociate = G_TYPE_OBJECT;
+
+	if (gtypeToAssociate == 0)
+		return;
+
+	g_type_set_qdata(gtypeToAssociate, [self wrapperQuark], [self class]);
+}
 
 + (GQuark)wrapperQuark
 {
@@ -113,7 +138,7 @@ static void initObjectQuark(void)
 				//    [wrapperObject className]);
 				[self release];
 				return wrapperObject;
-			}
+			}  // else: wrong type - exception!
 
 			[self setGObject:obj];
 		} @catch (id e) {

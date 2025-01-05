@@ -12,6 +12,8 @@
 static OFString const *OGObjectQuarkName;
 static GQuark OGObjectQuark;
 
+id OGWrapperClassAndObjectForGObject(void *obj);
+
 /**
  * The base class for all wrapper classes
  */
@@ -22,6 +24,10 @@ static GQuark OGObjectQuark;
 	 */
 	GObject *_gObject;
 }
+
++ (void)load;
+
++ (GQuark)wrapperQuark;
 
 /**
  * Returns a new instance of OGObject with the internal GObject set to obj
