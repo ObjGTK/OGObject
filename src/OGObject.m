@@ -138,9 +138,10 @@ id OGWrapperClassAndObjectForGObject(void *obj)
 				//    [wrapperObject className]);
 				[self release];
 				return wrapperObject;
-			}  // else: wrong type - exception!
+			}  // else: TODO wrong type - exception!
 
 			[self setGObject:obj];
+			[self retain];
 		} @catch (id e) {
 			[self release];
 			@throw e;
@@ -153,21 +154,8 @@ id OGWrapperClassAndObjectForGObject(void *obj)
 - (void)setGObject:(void *)obj
 {
 	@synchronized(self) {
-		if (_gObject != NULL) {
-			g_assert(G_IS_OBJECT(_gObject));
-
-			if (!g_object_replace_qdata(
-			        _gObject, [OGObject wrapperQuark], self, NULL, NULL, NULL))
-				@throw [OGObjectInitializationRaceConditionException
-				    exceptionWithClass:[self class]];
-
-			// Decrease the reference count on the previously stored GObject.
-			// Don't provide reference to self to toggle notify in this case
-			// because _gObject is going to be exchanged.
-			g_object_remove_toggle_ref(_gObject, refToggleNotify, nil);
-			// Disable the reverse toggle reference by decreasing our own reference
-			// count.
-			[self release];
+		if (_gObject != NULL && obj != NULL) {
+			// TODO: @throw Exception GObject alredy set
 		}
 
 		_gObject = obj;
