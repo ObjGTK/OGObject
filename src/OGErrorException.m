@@ -23,6 +23,24 @@
 	return [[[self alloc] initWithGError:err] autorelease];
 }
 
++ (void)throwForError:(GError *)err
+{
+	[self throwForError:err unrefGObject:NULL];
+}
+
++ (void)throwForError:(GError *)err unrefGObject:(void *)gobject
+{
+	if (!err)
+		return;
+
+	if (gobject != NULL)
+		g_object_unref(gobject);
+
+	OGErrorException *exception = [self exceptionWithGError:err];
+	g_error_free(err);
+	@throw exception;
+}
+
 - (instancetype)initWithGError:(GError *)err
 {
 	self = [super init];
@@ -48,10 +66,9 @@
 
 - (OFString *)description
 {
-	return [OFString
-	    stringWithFormat:@"An exception of type %@ occurred!\nDomain: %@, "
-	                     @"Error-Code %i.\nMessage: %@",
-	    self.class, self.domain, _errNo, _message];
+	return [OFString stringWithFormat:@"An exception of type %@ occurred!\nDomain: %@, "
+	                                  @"Error-Code %i.\nMessage: %@",
+	                 self.class, self.domain, _errNo, _message];
 }
 
 - (OFString *)domain

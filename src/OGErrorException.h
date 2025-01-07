@@ -6,8 +6,6 @@
 #import <ObjFW/ObjFW.h>
 #include <glib-object.h>
 
-OF_ASSUME_NONNULL_BEGIN
-
 @interface OGErrorException: OFException
 {
 	GQuark _gDomain;
@@ -20,8 +18,10 @@ OF_ASSUME_NONNULL_BEGIN
 
 + (instancetype)exceptionWithGError:(GError *)err;
 
++ (void)throwForError:(GError *)err;
+
++ (void)throwForError:(GError *)err unrefGObject:(void *)gobject;
+
 - (instancetype)initWithGError:(GError *)err;
 
 @end
-
-OF_ASSUME_NONNULL_END
