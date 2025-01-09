@@ -55,18 +55,20 @@ static void initObjectQuark(void)
 id OGWrapperClassAndObjectForGObject(void *obj)
 {
 	g_assert(G_IS_OBJECT(obj));
-	OFLog(@"GType: %s", g_type_name(G_TYPE_FROM_INSTANCE(obj)));
-
+	
 	Class wrapperClass = g_type_get_qdata(G_OBJECT_TYPE(obj), [OGObject wrapperQuark]);
 
-	OFLog(@"ObjC Class name %@", [wrapperClass className]);
+	while (wrapperClass == Nil) {
+		GType parentType = g_type_parent(G_OBJECT_TYPE(obj));
+		// Fundamental type reached
+		if(parentType == 0) {
+			wrapperClass = [OGObject class];
+			break;
+		}
+		wrapperClass = g_type_get_qdata(parentType, [OGObject wrapperQuark]);
+	}
 
-	id wrapperObject = [wrapperClass withGObject:obj];
-
-	if (wrapperObject == nil)
-		OFLog(@"Need to walk the dependency tree!");
-
-	return wrapperObject;
+	return [wrapperClass withGObject:obj];
 }
 
 @implementation OGObject
