@@ -9,6 +9,7 @@ LIB_MINOR = 1
 SRCS = OGErrorException.m \
 	OGObjectInitializationFailedException.m \
 	OGObjectInitializationRaceConditionException.m \
+	OGObjectInitializationWrappedObjectAlreadySetException.m \
 	OGObjectSignalNotFoundException.m \
 	OGObject.m
 

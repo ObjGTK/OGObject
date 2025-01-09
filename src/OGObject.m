@@ -8,6 +8,7 @@
 #import "OGObject.h"
 #import "OGObjectInitializationFailedException.h"
 #import "OGObjectInitializationRaceConditionException.h"
+#import "OGObjectInitializationWrappedObjectAlreadySetException.h"
 #import "OGObjectSignalNotFoundException.h"
 
 // Signalling
@@ -55,13 +56,13 @@ static void initObjectQuark(void)
 id OGWrapperClassAndObjectForGObject(void *obj)
 {
 	g_assert(G_IS_OBJECT(obj));
-	
+
 	Class wrapperClass = g_type_get_qdata(G_OBJECT_TYPE(obj), [OGObject wrapperQuark]);
 
 	while (wrapperClass == Nil) {
 		GType parentType = g_type_parent(G_OBJECT_TYPE(obj));
 		// Fundamental type reached
-		if(parentType == 0) {
+		if (parentType == 0) {
 			wrapperClass = [OGObject class];
 			break;
 		}
@@ -134,13 +135,10 @@ id OGWrapperClassAndObjectForGObject(void *obj)
 			GQuark quark = [[self class] wrapperQuark];
 
 			id wrapperObject = g_object_get_qdata(obj, quark);
-			// OFLog(@"WrapperObject is %u", wrapperObject);
 			if ([wrapperObject isKindOfClass:[self class]]) {
-				//	OFLog(@"Found a wrapper of type %@, returning.",
-				//    [wrapperObject className]);
 				[self release];
 				return wrapperObject;
-			}  // else: TODO wrong type - exception!
+			}
 
 			[self setGObject:obj];
 			[self retain];
@@ -157,7 +155,8 @@ id OGWrapperClassAndObjectForGObject(void *obj)
 {
 	@synchronized(self) {
 		if (_gObject != NULL && obj != NULL) {
-			// TODO: @throw Exception GObject alredy set
+			@throw [OGObjectInitializationWrappedObjectAlreadySetException
+			    exceptionWithClass:[self class]];
 		}
 
 		_gObject = obj;

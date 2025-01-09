@@ -1,0 +1,4 @@
+#import "OGObjectInitializationWrappedObjectAlreadySetException.h"
+
+@implementation OGObjectInitializationWrappedObjectAlreadySetException
+@end
