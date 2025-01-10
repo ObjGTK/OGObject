@@ -11,6 +11,7 @@ SRCS = OGErrorException.m \
 	OGObjectInitializationRaceConditionException.m \
 	OGObjectInitializationWrappedObjectAlreadySetException.m \
 	OGObjectSignalNotFoundException.m \
+	OGObjectGObjectToWrapCreationFailedException.m \
 	OGObject.m
 
 INCLUDES = ${SRCS:.m=.h}

@@ -8,8 +8,7 @@
 
 OF_ASSUME_NONNULL_BEGIN
 
-@interface OGObjectInitializationWrappedObjectAlreadySetException
-    : OGObjectInitializationFailedException
+@interface OGObjectGObjectToWrapCreationFailedException: OGObjectInitializationFailedException
 @end
 
 OF_ASSUME_NONNULL_END

@@ -4,10 +4,11 @@
  * SPDX-FileCopyrightText: 2024 Amrit Bhogal <ambhogal01@gmail.com>
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
-
-#import "OGErrorException.h"
 #import <ObjFW/ObjFW.h>
 #include <glib-object.h>
+
+#import "OGErrorException.h"
+#import "OGObjectGObjectToWrapCreationFailedException.h"
 
 static OFString const *OGObjectQuarkName;
 static GQuark OGObjectQuark;
