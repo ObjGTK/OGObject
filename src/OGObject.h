@@ -76,5 +76,6 @@ id OGWrapperClassAndObjectForGObject(void *obj);
  * @return     The GObject handler ID (always greater than 0)
  */
 - (gulong)connectSignal:(OFString *)signal target:(id)target selector:(SEL)sel;
+- (gulong)connectSignal:(OFString *)signal target:(id)target selector:(SEL)sel after:(bool)connectAfter;
 
 @end

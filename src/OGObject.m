@@ -10,19 +10,85 @@
 #import "OGObjectInitializationRaceConditionException.h"
 #import "OGObjectInitializationWrappedObjectAlreadySetException.h"
 #import "OGObjectSignalNotFoundException.h"
+#import <ffi.h>
 
-// Signalling
-struct SigData {
-	id target;
+struct OGClosure {
+	GClosure closure;
 	SEL sel;
-	id emitter;
 };
 
-static void free_malloced_ptr(gpointer target, GClosure *cl) { free(target); }
-
-static void gsignal_handler(gpointer target, struct SigData *data)
+static void closure_marshal(GClosure *closure, GValue *return_value, guint n_param_values,
+    const GValue *param_values, gpointer invocation_hint, gpointer marshal_data)
 {
-	[data->target performSelector:data->sel withObject:data->emitter];
+	struct OGClosure *og_closure = (struct OGClosure *)closure;
+	ffi_cif cif;
+	ffi_type **arg_types = g_newa(ffi_type *, 2 + n_param_values);
+	void **objc_arg_values = g_newa(void *, 2 + n_param_values);
+	void **objc_arg_value_ptrs = g_newa(void *, 2 + n_param_values);
+	ffi_type *ret_type = &ffi_type_void;  // TODO
+	ffi_arg rc;
+	ffi_status status;
+	IMP callee;
+
+	arg_types[0] = &ffi_type_pointer;
+	objc_arg_values[0] = closure->data;
+	objc_arg_value_ptrs[0] = &objc_arg_values[0];
+
+#if defined(OF_OBJFW_RUNTIME)
+	callee = objc_msg_lookup((id)closure->data, og_closure->sel);
+	arg_types[1] = &ffi_type_pointer;
+#elif defined(OF_APPLE_RUNTIME)
+	callee = objc_msgSend;
+	arg_types[1] = &ffi_type_pointer;
+#else
+#error Need support for that runtime
+#endif
+
+	objc_arg_values[1] = (void *)og_closure->sel;
+	objc_arg_value_ptrs[1] = &objc_arg_values[1];
+
+	for (int i = 0; i < n_param_values; i++) {
+		const GValue *gvalue = &param_values[i];
+		if (G_VALUE_HOLDS(gvalue, G_TYPE_INT) || G_VALUE_HOLDS(gvalue, G_TYPE_ENUM) ||
+		    G_VALUE_HOLDS(gvalue, G_TYPE_FLAGS)) {
+			int v = g_value_get_int(gvalue);
+			arg_types[2 + i] = &ffi_type_sint;
+			memcpy(&objc_arg_values[2 + i], &v, sizeof(v));
+		} else if (G_VALUE_HOLDS(gvalue, G_TYPE_DOUBLE)) {
+			double d = g_value_get_double(gvalue);
+			arg_types[2 + i] = &ffi_type_double;
+			memcpy(&objc_arg_values[2 + i], &d, sizeof(d));
+		} else if (G_VALUE_HOLDS(gvalue, G_TYPE_FLOAT)) {
+			float f = g_value_get_float(gvalue);
+			arg_types[2 + i] = &ffi_type_float;
+			memcpy(&objc_arg_values[2 + i], &f, sizeof(f));
+		} else if (G_VALUE_HOLDS(gvalue, G_TYPE_BOOLEAN)) {
+			uint8_t b = (uint8_t)g_value_get_boolean(gvalue);
+			arg_types[2 + i] = &ffi_type_uint8;
+			memcpy(&objc_arg_values[2 + i], &b, sizeof(b));
+		} else if (G_VALUE_HOLDS(gvalue, G_TYPE_POINTER)) {
+			void *p = g_value_get_pointer(gvalue);
+			arg_types[2 + i] = &ffi_type_pointer;
+			objc_arg_values[2 + i] = p;
+		} else if (G_VALUE_HOLDS(gvalue, G_TYPE_OBJECT)) {
+			void *obj = g_value_get_object(gvalue);
+			id wrapper = OGWrapperClassAndObjectForGObject(obj);
+			arg_types[2 + i] = &ffi_type_pointer;
+			objc_arg_values[2 + i] = wrapper;
+		} else {
+			abort();
+			// TODO throw a new Exception here
+		}
+		objc_arg_value_ptrs[2 + i] = &objc_arg_values[2 + i];
+	}
+
+	// TODO: consider doing this at connect time rather than at emit time.
+	status = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, 2 + n_param_values, ret_type, arg_types);
+	OFAssert(status == FFI_OK);
+
+	ffi_call(&cif, FFI_FN(callee), &rc, objc_arg_value_ptrs);
+
+	// TODO save the return value
 }
 
 // Wrapping memory management
@@ -120,7 +186,8 @@ id OGWrapperClassAndObjectForGObject(void *obj)
 	[super dealloc];
 }
 
-- (instancetype)init {
+- (instancetype)init
+{
 	OF_INVALID_INIT_METHOD
 }
 
@@ -189,17 +256,30 @@ id OGWrapperClassAndObjectForGObject(void *obj)
 
 - (gulong)connectSignal:(OFString *)signal target:(id)target selector:(SEL)sel
 {
+	return [self connectSignal:signal target:target selector:sel after:false];
+}
+
+- (gulong)connectSignal:(OFString *)signal
+                 target:(id)target
+               selector:(SEL)sel
+                  after:(bool)connectAfter
+{
 	guint signalId = g_signal_lookup([signal UTF8String], G_OBJECT_TYPE(_gObject));
 	if (signalId == 0)
 		@throw [OGObjectSignalNotFoundException exceptionWithSignal:signal];
 
-	struct SigData *data = malloc(sizeof(struct SigData));
-	data->target = target;
-	data->sel = sel;
-	data->emitter = self;
+	GClosure *closure = g_closure_new_simple(sizeof(struct OGClosure), target);
+	struct OGClosure *og_closure = (struct OGClosure *)closure;
+	og_closure->sel = sel;
+	g_closure_set_marshal(closure, closure_marshal);
 
-	return g_signal_connect_data(
-	    _gObject, [signal UTF8String], G_CALLBACK(gsignal_handler), data, free_malloced_ptr, 0);
+	if ([target isKindOfClass:[OGObject class]]) {
+		GObject *obj = [target gObject];
+		if (obj)
+			g_object_watch_closure(obj, closure);
+	}
+
+	return g_signal_connect_closure(_gObject, [signal UTF8String], closure, connectAfter);
 }
 
 @end
