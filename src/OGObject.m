@@ -120,6 +120,10 @@ id OGWrapperClassAndObjectForGObject(void *obj)
 	[super dealloc];
 }
 
+- (instancetype)init {
+	OF_INVALID_INIT_METHOD
+}
+
 - (instancetype)initWithGObject:(void *)obj
 {
 	g_assert(G_IS_OBJECT(obj));
