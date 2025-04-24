@@ -74,6 +74,16 @@ PKG_CHECK_MODULES([gobject2], [gobject-2.0 >= 2.34.0], [
 	AC_MSG_ERROR(You need gobject-2.0 >= 2.34.0 installed!)
 ])
 
+PKG_CHECK_MODULES([libffi], [libffi >= 3.4.6], [
+	OGOBJECT_CPPFLAGS="$OGOBJECT_CPPFLAGS $libffi_CFLAGS"
+	OGOBJECT_LIBS="$OGOBJECT_LIBS $libffi_LIBS"
+	CPPFLAGS="$CPPFLAGS $libffi_CFLAGS"
+	LIBS="$LIBS $libffi_LIBS"
+	FRAMEWORK_LIBS="$FRAMEWORK_LIBS $libffi_LIBS"
+], [
+	AC_MSG_ERROR(You need libffi >= 3.4.6 installed!)
+])
+
 AS_IF([test x"$build_framework" = x"yes"], [
 	TESTS_LIBS="-framework OGObject $TESTS_LIBS"
 	TESTS_LIBS="-F../src $TESTS_LIBS"
