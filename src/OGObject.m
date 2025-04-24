@@ -1,7 +1,6 @@
 /*
  * SPDX-FileCopyrightText: 2015-2017 Tyler Burton <software@tylerburton.ca>
- * SPDX-FileCopyrightText: 2021-2024 Johannes Brakensiek <objfw@devbeejohn.de>
- * SPDX-FileCopyrightText: 2024 Amrit Bhogal <ambhogal01@gmail.com>
+ * SPDX-FileCopyrightText: 2021-2025 The ObjGTK authors, see AUTHORS file at https://github.com/ObjGTK/gir2objc/blob/main/AUTHORS
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 

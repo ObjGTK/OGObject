@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Johannes Brakensiek <objfw@devbeejohn.de>
+ * SPDX-FileCopyrightText: 2024-2025 Johannes Brakensiek <objfw@devbeejohn.de>
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
