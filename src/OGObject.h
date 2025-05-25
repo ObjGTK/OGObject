@@ -28,6 +28,8 @@ id OGWrapperClassAndObjectForGObject(void *obj);
 
 + (void)load;
 
++ (GTypeClass*)gObjectClass;
+
 + (GQuark)wrapperQuark;
 
 /**

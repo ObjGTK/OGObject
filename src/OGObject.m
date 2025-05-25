@@ -149,6 +149,18 @@ id OGWrapperClassAndObjectForGObject(void *obj)
 	g_type_set_qdata(gtypeToAssociate, [self wrapperQuark], [self class]);
 }
 
+static GTypeClass *gObjectClass = NULL;
+
++ (GTypeClass*)gObjectClass
+{
+	if(gObjectClass != NULL)
+		return gObjectClass;
+
+	gObjectClass = g_type_class_ref(G_TYPE_OBJECT);
+
+	return gObjectClass;
+}
+
 + (GQuark)wrapperQuark
 {
 	if (OGObjectQuark != 0)
