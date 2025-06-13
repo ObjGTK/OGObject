@@ -120,7 +120,8 @@ static void initObjectQuark(void)
 
 id OGWrapperClassAndObjectForGObject(void *obj)
 {
-	g_assert(G_IS_OBJECT(obj));
+	if(!G_IS_OBJECT(obj))
+		return Nil;
 
 	Class wrapperClass = g_type_get_qdata(G_OBJECT_TYPE(obj), [OGObject wrapperQuark]);
 
